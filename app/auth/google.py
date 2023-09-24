@@ -1,6 +1,7 @@
 from flask import Blueprint, request, redirect, url_for, session, make_response, render_template
 from flask_oauthlib.client import OAuth
 from config.config import Config
+from app.db import get_last_10_user_resumes
 
 config = Config()
 
@@ -47,13 +48,29 @@ def authorized_google():
         # Set a session variable to indicate the user is logged in
         session['logged_in'] = True
 
+        # Retrieve the User Info from Google
         session['user_info'] = google.get('userinfo')
+        
+        if session['user_info']:
+            # Store user info in the session
+            # session['user_info'] = user_info.data
 
-        # Redirect the user to the "/dashboard" route in the main app
-        return redirect(url_for('dashboard'))
+            # Retrieve the user's ID
+            user_id = session['user_info'].data['id']
+
+            # Retrieve the last 10 user resumes from Firestore
+            last_10_user_resumes = get_last_10_user_resumes(user_id)
+            
+            # Store the last 10 resumes in the session
+            session['user_resumes'] = last_10_user_resumes
+
+            # Redirect the user to the dashboard
+            return redirect(url_for('dashboard'))
+        else:
+            return 'Failed to fetch user info from Google'
     else:
         return 'Access denied: Failed to obtain an access token'
-    
+
 @google.tokengetter
 def get_google_oauth_token():
     return session.get('google_token')

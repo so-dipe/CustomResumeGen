@@ -53,6 +53,19 @@
         <h2 class="text-xl font-semibold mb-2">Generated Resume:</h2>
         <div id="generated_resume" class="bg-opacity-40 bg-gray-100 p-4 rounded-lg border"></div>
         <div id="resumeContainer"></div>
+
+        <h2>Last 10 Resumes:</h2>
+        <div class="resume-list">
+            {% for resume_id, resume_content in user_resumes.items() %}
+                <div class="resume-item">
+                    <h3>Resume {{ resume_id }}</h3>
+                    <p>{{ resume_content }}</p>
+                </div>
+            {% endfor %}
+        </div>
+
+        <a href="{{ url_for('show_more_resumes') }}">Show More</a>
+
         <!-- Example using a link -->
         <a href="{{ url_for('logout') }}">Logout</a>
 

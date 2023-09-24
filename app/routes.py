@@ -3,18 +3,14 @@ from app import app
 from app.resume.generator import generate_custom_resume
 import tiktoken
 from config.config import Config
-import firebase_admin
-from firebase_admin import credentials, firestore
 from datetime import datetime
+from .db import save_resume_to_firestore_and_session, update_or_create_user_data, get_next_resume_id, get_user_resumes_from_firestore, get_last_10_user_resumes
 
 config = Config()
 
 encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
 
-cred = credentials.Certificate(config.FIREBASE_CRED_PATH)
-firebase_admin.initialize_app(cred)
-
-db = firestore.client()  # Initialize Firestore client
+# db = firestore.client()  # Initialize Firestore client
 
 @app.route("/")
 def index():
@@ -37,12 +33,19 @@ def generate_resume():
     if total_length > 3500:
         return jsonify({"error": "Combined length of resume and job description is too long."})
 
-    # Call your function to generate custom resume
+    # Call your function to generate a custom resume
     generated_resume = generate_custom_resume(job_description, resume_text)
 
-    if session.get('user_info').data['id']:
-        user_id = session.get('user_info').data['id']
-        save_resume_to_firestore_and_session(user_id, generated_resume)
+    # Check if the user is logged in using the session variable
+    if 'user_info' not in session or 'id' not in session['user_info'].data:
+        return jsonify({"error": "User is not logged in."})
+
+    user_id = session['user_info'].data['id']
+
+    resume_id = get_next_resume_id(user_id)
+
+    # Save the generated resume to Firestore and session
+    save_resume_to_firestore_and_session(user_id, generated_resume, resume_id)
 
     return jsonify(generated_resume)
 
@@ -56,28 +59,34 @@ def dashboard():
     user_info = session.get('user_info')
 
     if user_info:
-        # Access user data fields like 'given_name' and 'email' directly
-        given_name = user_info.data['given_name']
-        email = user_info.data['email']
-        # Add other user data fields as needed
+        # Call the function to update or create user data in Firestore
+        update_or_create_user_data(user_info)
 
-        # Store user data in Firestore
-        user_id = user_info.data['id']
-        user_ref = db.collection('users').document(user_id)
-
-        existing_data = user_ref.get().to_dict()
-
-        if existing_data:
-            # Merge existing data with new data
-            updated_data = {**existing_data, 'given_name': given_name, 'email': email}
-            user_ref.update(updated_data)
-        else:
-            # Create a new document
-            user_ref.set({'given_name': given_name, 'email': email})
+        # Retrieve the last 10 user resumes from the session
+        user_resumes = session.get('user_resumes', {})
         
-        return render_template("dashboard.html", user_info=user_info)
+        return render_template("dashboard.html", user_info=user_info, user_resumes=user_resumes)
     else:
         return 'Failed to fetch user info from OAuth response'
+
+@app.route('/show_more_resumes')
+def show_more_resumes():
+    # Retrieve the user's ID from the session
+    user_id = session.get('user_info').data['id']
+
+    # Get the current page number from the query parameters (default to 1)
+    page = int(request.args.get('page', 1))
+
+    # Define the number of resumes to display per page
+    resumes_per_page = 10
+
+    # Retrieve resumes from Firestore with pagination
+    user_resumes = get_user_resumes_from_firestore(user_id, page, resumes_per_page)
+
+    # Determine if there are more pages
+    has_more = len(user_resumes) > (page * resumes_per_page)
+
+    return render_template('show_more_resumes.html', resumes=user_resumes, page=page, has_more=has_more)
     
 @app.route('/logout')
 def logout():
@@ -85,28 +94,3 @@ def logout():
     session.clear()
     # Optionally, redirect to a login page or another appropriate route
     return redirect(url_for('index')) 
-
-# Function to save the generated resume to Firestore and session
-def save_resume_to_firestore_and_session(user_id, generated_resume):
-    # Get the current timestamp using Python's datetime
-    timestamp = datetime.now()
-    # Save the generated resume to Firestore
-    resume_ref = db.collection('users').document(user_id).collection('resumes').document()
-    resume_ref.set({
-        'content': generated_resume,
-        'timestamp': timestamp  # Optional: Add a timestamp
-    })
-
-    # Retrieve the user's stored resumes from the session
-    user_resumes = session.get('user_resumes', [])
-
-    # Append the generated resume to the list
-    user_resumes.append(generated_resume)
-
-    # Ensure that only the latest 10 resumes are stored
-    if len(user_resumes) > 10:
-        user_resumes = user_resumes[-10:]
-
-    # Store the list of resumes in the user's session
-    session['user_resumes'] = user_resumes
-
