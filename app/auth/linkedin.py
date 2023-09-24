@@ -3,47 +3,51 @@ from flask_oauthlib.client import OAuth
 from config.config import Config
 
 config = Config()
-auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
+auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 oauth = OAuth()
 linkedin = oauth.remote_app(
-    'linkedin',
-    consumer_key=config.LINKEDIN_CLIENT_ID, #'YourLinkedInClientID',
-    consumer_secret=config.LINKEDIN_CLIENT_SECRET, #'YourLinkedInClientSecret',
+    "linkedin",
+    consumer_key=config.LINKEDIN_CLIENT_ID,  # 'YourLinkedInClientID',
+    consumer_secret=config.LINKEDIN_CLIENT_SECRET,  # 'YourLinkedInClientSecret',
     request_token_params={
-        'scope': 'r_emailaddress r_liteprofile',  # Define the LinkedIn permissions you need
+        # Define the LinkedIn permissions you need
+        "scope": "r_emailaddress r_liteprofile",
     },
-    base_url='https://api.linkedin.com/v2/',
+    base_url="https://api.linkedin.com/v2/",
     request_token_url=None,
-    access_token_method='POST',
-    access_token_url='https://www.linkedin.com/oauth/v2/accessToken',
-    authorize_url='https://www.linkedin.com/oauth/v2/authorization',
+    access_token_method="POST",
+    access_token_url="https://www.linkedin.com/oauth/v2/accessToken",
+    authorize_url="https://www.linkedin.com/oauth/v2/authorization",
 )
 
-@auth_bp.route('/linkedin')
+
+@auth_bp.route("/linkedin")
 def login():
     # print(url_for('.authorized', _external=True))
-    return linkedin.authorize(callback=url_for('.authorized', _external=True))
+    return linkedin.authorize(callback=url_for(".authorized", _external=True))
     # return linkedin.authorize(callback="https://shiny-space-spoon-wq9jrxx96jpc5jx9-5000.app.github.dev/auth/linkedin/authorized")
 
-@auth_bp.route('/linkedin/authorized')
+
+@auth_bp.route("/linkedin/authorized")
 def authorized():
     response = linkedin.authorized_response()
-    if response is None or response.get('access_token') is None:
-        return 'Access denied: reason={} error={}'.format(
-            request.args['error_reason'],
-            request.args['error_description']
+    if response is None or response.get("access_token") is None:
+        return "Access denied: reason={} error={}".format(
+            request.args["error_reason"], request.args["error_description"]
         )
 
-    session['linkedin_token'] = (response['access_token'], '')
-    user_info = linkedin.get('me')
+    session["linkedin_token"] = (response["access_token"], "")
+    user_info = linkedin.get("me")
     # Save user_info to your database or session as needed
 
-    return 'Logged in as: ' + user_info.data['localizedFirstName']
+    return "Logged in as: " + user_info.data["localizedFirstName"]
+
 
 @linkedin.tokengetter
 def get_linkedin_oauth_token():
-    return session.get('linkedin_token')
+    return session.get("linkedin_token")
+
 
 # from flask import Blueprint, request, redirect, url_for, session, flash
 # from config.config import Config

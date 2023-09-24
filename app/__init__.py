@@ -19,4 +19,7 @@ app.config["SESSION_TYPE"] = "filesystem"
 # Initialize Flask-Session extension
 Session(app)
 
-from app import routes  # Import your route handlers
+# autopep8: off
+from app import routes
+
+# autopep8: on
