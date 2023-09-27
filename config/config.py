@@ -33,3 +33,5 @@ class Config:
 
     # FIREBASE CREDIENTIALS
     FIREBASE_CRED_PATH = os.environ.get("FIREBASE_CRED_PATH")
+
+    FLASK_ENV = os.environ.get("FLASK_ENV")
