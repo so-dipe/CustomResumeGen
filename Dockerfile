@@ -14,6 +14,6 @@ RUN pip install -r requirements.txt
 EXPOSE 80
 
 #run app
-CMD ["python", "run.py"]
+CMD ["python", "run.py", "--host=0.0.0.0"]
 
 
