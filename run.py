@@ -6,7 +6,7 @@ config = Config()
 env = config.FLASK_ENV
 
 if __name__ == "__main__":
-    if env == "DEV":
-        app.run(debug=True)
-    else:
+    if env == "PROD":
         app.run()
+    elif env == "DEV":
+        app.run(debug=True)
