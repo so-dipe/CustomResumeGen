@@ -24,9 +24,19 @@ linkedin = oauth.remote_app(
 
 @auth_bp.route("/linkedin")
 def login():
-    # print(url_for('.authorized', _external=True))
-    return linkedin.authorize(callback=url_for(".authorized", _external=True))
-    # return linkedin.authorize(callback="https://shiny-space-spoon-wq9jrxx96jpc5jx9-5000.app.github.dev/auth/linkedin/authorized")
+    # # print(url_for('.authorized', _external=True))
+    # return linkedin.authorize(callback=url_for(".authorized", _external=True))
+    # # return linkedin.authorize(callback="https://shiny-space-spoon-wq9jrxx96jpc5jx9-5000.app.github.dev/auth/linkedin/authorized")
+    # print(url_for(".authorized_google", _external=True))
+    if config.FLASK_ENV == "DEV":
+        if config.CODESPACE:
+            return linkedin.authorize(
+                callback="https://shiny-space-spoon-wq9jrxx96jpc5jx9-5000.app.github.dev/auth/linkedin/authorized"
+            )
+        else:
+            return linkedin.authorize(callback=url_for(".authorized", _external=True))
+    else:
+        return linkedin.authorize(callback=url_for(".authorized", _external=True))
 
 
 @auth_bp.route("/linkedin/authorized")

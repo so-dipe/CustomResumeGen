@@ -34,13 +34,17 @@ google = oauth.remote_app(
 @google_auth_bp.route("/google")
 def login_google():
     print(url_for(".authorized_google", _external=True))
-    # return google.authorize(callback=url_for(".authorized_google", _external=True))
-    return google.authorize(
-        callback="https://resumegen-swl0.onrender.com/auth/google/authorized"
-    )
-    # return google.authorize(
-    #     callback="https://shiny-space-spoon-wq9jrxx96jpc5jx9-5000.app.github.dev/auth/google/authorized"
-    # )
+    if config.FLASK_ENV == "DEV":
+        if config.CODESPACE:
+            return google.authorize(
+                callback="https://shiny-space-spoon-wq9jrxx96jpc5jx9-5000.app.github.dev/auth/google/authorized"
+            )
+        else:
+            return google.authorize(
+                callback=url_for(".authorized_google", _external=True)
+            )
+    else:
+        return google.authorize(callback=url_for(".authorized_google", _external=True))
 
 
 @google_auth_bp.route("/google/authorized")
