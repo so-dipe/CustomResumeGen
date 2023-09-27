@@ -33,10 +33,10 @@ google = oauth.remote_app(
 
 @google_auth_bp.route("/google")
 def login_google():
-    # return google.authorize(callback=url_for(".authorized_google", _external=True))
-    return google.authorize(
-        callback="https://shiny-space-spoon-wq9jrxx96jpc5jx9-5000.app.github.dev/auth/google/authorized"
-    )
+    return google.authorize(callback=url_for(".authorized_google", _external=True))
+    # return google.authorize(
+    #     callback="https://shiny-space-spoon-wq9jrxx96jpc5jx9-5000.app.github.dev/auth/google/authorized"
+    # )
 
 
 @google_auth_bp.route("/google/authorized")
