@@ -4,8 +4,8 @@ from flask import (
     redirect,
     url_for,
     session,
-    make_response,
-    render_template,
+    # make_response,
+    # render_template,
 )
 from flask_oauthlib.client import OAuth
 from config.config import Config

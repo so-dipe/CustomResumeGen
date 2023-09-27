@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  myapp:
+    image: resumegen:0.2
+    deploy:
+      replicas: 1
+    ports:
+      - "80:80"

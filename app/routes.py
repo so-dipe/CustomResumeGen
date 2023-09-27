@@ -1,15 +1,16 @@
 from flask import render_template, request, jsonify, session, redirect, url_for
+import tiktoken
 from app import app
 from app.resume.generator import generate_custom_resume
-import tiktoken
 from config.config import Config
-from datetime import datetime
+
+# from datetime import datetime
 from .db import (
     save_resume_to_firestore_and_session,
     update_or_create_user_data,
     get_next_resume_id,
     get_user_resumes_from_firestore,
-    get_last_10_user_resumes,
+    # get_last_10_user_resumes,
 )
 
 config = Config()
