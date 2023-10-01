@@ -10,7 +10,7 @@
 <body class="bg-gray-100 min-h-screen flex items-center justify-center">
     <div class="w-full max-w-xl p-6 bg-opacity-50 bg-white backdrop-blur-lg rounded-lg shadow-lg">
         <!-- Add welcome message with the user's name -->
-        <h1>Welcome, {{ user_info['given_name'] }}</h1>
+        <h1>Welcome, {{ user_info['given_name'] }}.</h1>
         <script src="{{ url_for('static', filename='js/dashboard-data.js') }}"></script>
         
         <!-- Include the rest of the content from index.html -->
