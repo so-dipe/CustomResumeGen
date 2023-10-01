@@ -21,7 +21,7 @@ app.permanent_session_lifetime = timedelta(days=7)
 # Session(app)
 
 # Register the auth_bp Blueprint
-app.register_blueprint(auth_bp)
+# app.register_blueprint(auth_bp)
 app.register_blueprint(google_auth_bp)
 
 # autopep8: off
