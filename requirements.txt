@@ -25,4 +25,5 @@ python-dotenv==1.0.0
 python-json-logger==2.0.7
 tiktoken==0.5.1
 virtualenv==20.24.5
+Werkzeug==2.3.7
 WTForms==3.0.1

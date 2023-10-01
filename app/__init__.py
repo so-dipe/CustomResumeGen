@@ -2,8 +2,7 @@ from flask import Flask
 from datetime import timedelta
 from flask_session import Session
 from config.config import Config
-
-# from .auth.linkedin import auth_bp
+from .auth.linkedin import auth_bp
 from .auth.google import google_auth_bp
 
 
@@ -22,7 +21,7 @@ app.permanent_session_lifetime = timedelta(days=7)
 # Session(app)
 
 # Register the auth_bp Blueprint
-# app.register_blueprint(auth_bp)
+app.register_blueprint(auth_bp)
 app.register_blueprint(google_auth_bp)
 
 # autopep8: off
