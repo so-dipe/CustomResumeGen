@@ -44,7 +44,7 @@ google = oauth.remote_app(
 
 @google_auth_bp.route("/google")
 def login_google():
-    print(config.CODESPACE)
+    print(url_for(".authorized_google", _external=True))
     if config.FLASK_ENV == "DEV":
         if config.CODESPACE:
             return google.authorize(
@@ -57,6 +57,7 @@ def login_google():
     else:
         return google.authorize(callback=url_for(".authorized_google", _external=True))
 
+
 @google_auth_bp.route("/google/authorized")
 def authorized_google():
     response = google.authorized_response()
@@ -65,37 +66,29 @@ def authorized_google():
             request.args["error_reason"], request.args["error_description"]
         )
 
-    # Store the OAuth response in the session
-    session["oauth_response"] = response
+    # Store only necessary information from the OAuth response in the session
+    session["google_token"] = response.get("access_token")
+    session["logged_in"] = True
 
-    # Exchange the authorization code for an access token
-    access_token = response.get("access_token")
+    # Retrieve the User Info from Google
+    user_info = google.get("userinfo")
+    if user_info:
+        session["user_info"] = user_info.data
+        print(session["user_info"])
 
-    if access_token:
-        # Store the access token in the session
-        session["google_token"] = access_token
-        # Set a session variable to indicate the user is logged in
-        session["logged_in"] = True
+        # Retrieve the user's ID
+        user_id = user_info.data["id"]
 
-        # Retrieve the User Info from Google
-        session["user_info"] = google.get("userinfo")
+        # Retrieve the last 10 user resumes from Firestore
+        last_10_user_resumes = get_last_10_user_resumes(user_id)
 
-        if session["user_info"]:
-            # Retrieve the user's ID
-            user_id = session["user_info"].data["id"]
+        # Store the last 10 resumes in the session
+        session["user_resumes"] = last_10_user_resumes
 
-            # Retrieve the last 10 user resumes from Firestore
-            last_10_user_resumes = get_last_10_user_resumes(user_id)
-
-            # Store the last 10 resumes in the session
-            session["user_resumes"] = last_10_user_resumes
-
-            # Redirect the user to the dashboard
-            return redirect(url_for("dashboard"))
-        else:
-            return "Failed to fetch user info from Google"
+        # Redirect the user to the dashboard
+        return redirect(url_for("dashboard"))
     else:
-        return "Access denied: Failed to obtain an access token"
+        return "Failed to fetch user info from Google"
 
 
 @google.tokengetter

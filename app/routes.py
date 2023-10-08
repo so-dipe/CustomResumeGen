@@ -67,7 +67,7 @@ def generate_resume():
 def dashboard():
     # Check if the user is logged in using the session variable
     if not session.get("logged_in"):
-        return "Access denied: You are not logged in"
+        return redirect(url_for("index"))
 
     # Retrieve the User Info dictionary from the session
     user_info = session.get("user_info")

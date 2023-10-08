@@ -81,12 +81,12 @@ def set_user_resumes_in_firestore(user_id, user_resumes):
 
 def update_or_create_user_data(user_info):
     # Access user data fields like 'given_name' and 'email' directly
-    given_name = user_info.data["given_name"]
-    email = user_info.data["email"]
+    given_name = user_info["given_name"]
+    email = user_info["email"]
     # Add other user data fields as needed
 
-    # Get the user's ID from the user_info data
-    user_id = user_info.data["id"]
+    # Get the user's ID from the user_info dictionary
+    user_id = user_info["id"]
 
     # Reference to the user's document in Firestore
     user_ref = db.collection("users").document(user_id)
