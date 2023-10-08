@@ -35,3 +35,4 @@ class Config:
     FIREBASE_CRED_PATH = os.environ.get("FIREBASE_CRED_PATH")
 
     FLASK_ENV = os.environ.get("FLASK_ENV")
+    CODESPACE = os.environ.get("CODESPACE") == "True"

@@ -1,89 +1,1028 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Custom Resume Generator</title>
-    <!-- Include your CSS stylesheets, libraries, or CDN links here -->
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-</head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center">
-    <div class="w-full max-w-xl p-6 bg-opacity-50 bg-white backdrop-blur-lg rounded-lg shadow-lg">
-        <!-- Add welcome message with the user's name -->
-        <h1>Welcome, {{ user_info.data['given_name'] }}</h1>
-        
-        <!-- Include the rest of the content from index.html -->
-        <h1 class="text-2xl font-semibold mb-4">Custom Resume Generator</h1>
-        <!-- <a href="{{ url_for('auth.login') }}">Login with LinkedIn</a>
-        <a href="{{ url_for('google_auth.login_google') }}">Login with Google</a> -->
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Custom Resume Generator</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+  </head>
+  <style>
+    /* background image  */
+    #body {
+      background-image: url("https://www.decorilla.com/online-decorating/wp-content/uploads/2020/11/Clutter-free-zoom-ready-home-office-.jpg");
+      background-size: cover;
+      background-repeat: no-repeat;
+    }
+  </style>
+  <script>
+    // generate pdf function
+    function generatePDF() {
+      const pdefName = document.getElementById("userName").textContent;
+      const element = document.getElementById("resumeContainer");
+      const opt = {
+        margin: 5,
+        filename: `${pdefName}resume.pdf`,
+        image: { type: "jpeg", quality: 1 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+      };
 
-        <!-- Include the auth.js script at the end of the body
-        <script src="{{ url_for('static', filename='js/firebase-auth.js') }}"></script> -->
-
-        <!-- Attach a click event to the button
-        <script>
-            document.getElementById("google-signin-btn").addEventListener("click", handleGoogleSignIn);
-        </script> -->
-
-        <form id="resumeForm" class="mb-4">
-            <label for="resume" class="block mb-1 font-medium">Enter your resume:</label>
-            <textarea
-                name="resume"
-                id="resume"
-                rows="6"
-                class="w-full px-3 py-2 border bg-opacity-70 bg-white backdrop-blur-lg shadow-lg rounded-lg focus:outline-none focus:ring focus:border-blue-300"
-            ></textarea>
-
-            <label for="job_description" class="block mt-4 mb-1 font-medium">Enter the job description:</label>
-            <textarea
-                name="job_description"
-                id="job_description"
-                rows="4"
-                class="w-full px-3 py-2 border border bg-opacity-70 bg-white backdrop-blur-lg shadow-lg rounded-lg focus:outline-none focus:ring focus:border-blue-300"
-            ></textarea>
-
-            <button
-                type="submit"
-                class="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring focus:ring-blue-300"
+      html2pdf().from(element).set(opt).save();
+    }
+  </script>
+  <body>
+    <div
+      id="body"
+      class="bg-gray-100 min-h-screen flex flex-col items-center justify-center"
+    >
+      <div
+        class="w-full max-w-5xl my-4 bg-opacity-80 bg-white backdrop-blur-lg rounded-lg shadow-lg"
+      >
+        <div class="flex py-2 px-5 justify-between items-center z-50">
+          <!-- user details -->
+          <div class="flex flex-row items-center">
+            <div
+              class="w-16 h-16 flex items-center justify-center bg-gray-200 rounded-full cursor-pointer hover:shadow-xl"
             >
-                Generate Custom Resume
-            </button>
-        </form>
-
-        <h2 class="text-xl font-semibold mb-2">Generated Resume:</h2>
-        <div id="generated_resume" class="bg-opacity-40 bg-gray-100 p-4 rounded-lg border"></div>
-        <div id="resumeContainer"></div>
-
-        <h2>Last 10 Resumes:</h2>
-        <div class="resume-list">
-            {% for resume_id, resume_content in user_resumes.items() %}
-                <div class="resume-item">
-                    <h3>Resume {{ resume_id }}</h3>
-                    <p>{{ resume_content }}</p>
-                </div>
-            {% endfor %}
+              <!-- user picture -->
+              <img
+                src="{{ user_info.data['picture'] }}"
+                alt=""
+                class="rounded-full"
+              />
+            </div>
+            <div class="px-3">
+              <!-- user name  -->
+              <h1 id="userName">{{ user_info.data['name'] }}</h1>
+              <!-- user email  -->
+              <h1>{{ user_info.data['email'] }}</h1>
+            </div>
+          </div>
+          <!-- logout button  -->
+          <button
+            class="bg-green-500 hover:bg-red-300 text-white font-bold py-2 px-4 rounded-xl transition-transform transform hover:scale-105 hover:shadow-xl"
+          >
+            <a href="{{ url_for('logout') }}">Logout</a>
+          </button>
         </div>
+      </div>
+      <!-- the loader  -->
+      <div
+        style="z-index: 50"
+        id="loader"
+        class="hidden flex flex-col fixed top-0 left-0 w-full h-full bg-opacity-50 bg-gray-600 flex justify-center items-center z-50"
+      >
+        <p id="loadingText" class="px-5 mb-4 font-bold"></p>
+        <div
+          class="animate-spin shadow-lg rounded-full h-16 w-16 border-t-4 border-green-500"
+        >
+          <div
+            class="animate-spin shadow-lg p-4 rounded-full h-16 w-16 border-t-4 border-red-500"
+          ></div>
+        </div>
+      </div>
+      <!-- user input section  -->
+      <div
+        class="w-full flex flex-col lg:flex-row justify-center max-w-5xl p-6 bg-opacity-70 bg-white backdrop-blur-lg rounded-lg shadow-lg"
+      >
+        <div id="inputs">
+          <form id="resumeForm" class="mb-4">
+            <label for="resume" class="block mb-1 font-medium"
+              >Enter your resume:</label
+            >
+            <!-- user inputs resume  -->
+            <textarea
+              name="resume"
+              id="resume"
+              rows="6"
+              class="w-full px-3 py-2 border bg-opacity-70 bg-white backdrop-blur-lg shadow-lg rounded-lg focus:outline-none focus:ring focus:border-blue-300"
+            ></textarea>
 
-        <a href="{{ url_for('show_more_resumes') }}">Show More</a>
+            <label for="job_description" class="block mt-4 mb-1 font-medium"
+              >Enter the job description:</label
+            >
+            <!-- user inputs job description  -->
+            <textarea
+              name="job_description"
+              id="job_description"
+              rows="4"
+              class="w-full px-3 py-2 border border bg-opacity-70 bg-white backdrop-blur-lg shadow-lg rounded-lg focus:outline-none focus:ring focus:border-blue-300"
+            ></textarea>
+            <!-- function to display loader  -->
+            <script>
+              function runLoader() {
+                document.getElementById("loader").classList.remove("hidden");
+                // document.getElementById("inputs").classList.add("hidden");
+              }
+            </script>
+            <!-- loader is displayed when user clicks on button  -->
+            <button
+              onclick="runLoader()"
+              id="generateBtn"
+              type="submit"
+              class="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring focus:ring-blue-300"
+            >
+              Generate Custom Resume
+            </button>
+          </form>
+        </div>
+        <!-- other templates section  -->
+        <div class="bg-green-500 p-6 hidden" id="templates">
+          <div class="w-full flex flex-row items-center justify-between">
+            <p class="font-bold text-xl">Pick a template</p>
+            <!-- button closes the templates section  -->
+            <div class="text-2xl hover:text-red-400 cursor-pointer">
+              <i onclick="closeTemps()" class="fas fa-times"></i>
+            </div>
+          </div>
 
-        <!-- Example using a link -->
-        <a href="{{ url_for('logout') }}">Logout</a>
+          <div class="container mx-auto px-4 py-8 rounded-lg">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <!-- template 1 -->
+              <div id="image0" class="bg-gray-200 rounded-lg overflow-hidden">
+                <img
+                  src="{{ url_for('static', filename='sorted/default.jpg') }}"
+                  alt="Image 1"
+                  class="w-full h-auto cursor-pointer"
+                />
+              </div>
+              <div id="image1" class="bg-gray-200 rounded-lg overflow-hidden">
+                <img
+                  src="{{ url_for('static', filename='sorted/001.jpg') }}"
+                  alt="Image 1"
+                  class="w-full h-auto cursor-pointer"
+                />
+              </div>
 
-    </div>
+              <!-- template 2 -->
+              <div id="image2" class="bg-gray-200 rounded-lg overflow-hidden">
+                <img
+                  src="{{ url_for('static', filename='sorted/002.jpg') }}"
+                  alt="Image 2"
+                  class="w-full h-auto cursor-pointer"
+                />
+              </div>
 
-    <script>
-        document.getElementById("resumeForm").addEventListener("submit", async function (event) {
+              <!-- template 3 -->
+              <div id="image3" class="bg-gray-200 rounded-lg overflow-hidden">
+                <img
+                  src="{{ url_for('static', filename='sorted/003.jpg') }}"
+                  alt="Image 3"
+                  class="w-full h-auto cursor-pointer"
+                />
+              </div>
+              <!-- template 4 -->
+              <div id="image4" class="bg-gray-200 rounded-lg overflow-hidden">
+                <img
+                  src="{{ url_for('static', filename='sorted/004.jpg') }}"
+                  alt="Image 1"
+                  class="w-full h-auto cursor-pointer"
+                />
+              </div>
+
+              <!-- template 5 -->
+              <div id="image5" class="bg-gray-200 rounded-lg overflow-hidden">
+                <img
+                  src="{{ url_for('static', filename='sorted/005.jpg') }}"
+                  alt="Image 2"
+                  class="w-full h-auto cursor-pointer"
+                />
+              </div>
+
+              <!-- template 6 -->
+              <div id="image6" class="bg-gray-200 rounded-lg overflow-hidden">
+                <img
+                  src="{{ url_for('static', filename='sorted/006.jpg') }}"
+                  alt="Image 3"
+                  class="w-full h-auto cursor-pointer hover:bg-opacity-70"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- hidden -->
+        <div id="results" class="ml-5 hidden">
+          <style>
+            /* claslist for minimizing and maximizing button */
+            .hover:hover {
+              background-color: green;
+            }
+          </style>
+          <script>
+            // function to display templates section
+            function templates() {
+              document.getElementById("templates").classList.remove("hidden");
+              document.getElementById("results").classList.add("hidden");
+            }
+            // function to hide template section
+            function closeTemps() {
+              document.getElementById("templates").classList.add("hidden");
+              document.getElementById("results").classList.remove("hidden");
+            }
+            // the loader display text
+            const text = "Generating your custom resume, please wait ...";
+            const loadingText = document.getElementById("loadingText");
+            let charIndex = 0;
+            // type writer function for loader display text
+            function typeWriter() {
+              if (charIndex < text.length) {
+                loadingText.textContent += text.charAt(charIndex);
+                charIndex++;
+                setTimeout(typeWriter, 40);
+              } else {
+                setTimeout(resetTypewriter, 500);
+              }
+            }
+
+            function resetTypewriter() {
+              loadingText.textContent = "";
+              charIndex = 0;
+              setTimeout(typeWriter, 500);
+            }
+
+            window.onload = typeWriter;
+
+            // toggle minimize and maximize arrow button
+            let isMinimized = false;
+            const tog = () => {
+              document.getElementById("inputs").classList.toggle("hidden");
+              const closeButton = document.getElementById("closeBtn");
+
+              if (isMinimized) {
+                closeButton.innerHTML = ` <i class="fas fa-arrow-right"></i>
+`;
+                closeButton.classList.remove("hover");
+              } else {
+                closeButton.innerHTML = ` <i class="fas fa-arrow-left"></i>
+`;
+                closeButton.classList.add("hover");
+              }
+
+              isMinimized = !isMinimized;
+            };
+          </script>
+          <div>
+            <div class="flex flex-col">
+              <div class="flex items-center justify-center bg-white p-4">
+                <!-- tips display message  -->
+                <h2>
+                  Your Resume is ready, you can click on fields to edit or make
+                  changes
+                </h2>
+              </div>
+              <div></div>
+              <div class="mt-4 flex flex-row items-center justify-center z-50">
+                <!-- capture resumeContainer and trigger pdf download button  -->
+                <button
+                  onclick="generatePDF() "
+                  id="downloadPdfButton"
+                  class="text-white bg-green-500 mx-2 px-4 py-2 rounded-lg hover:bg-green-600 focus:outline-none focus:ring focus:ring-green-300 shadow-xl"
+                >
+                  Download as PDF
+                </button>
+                <!-- displays templates  -->
+                <button
+                  class="text-white bg-blue-500 mx-2 px-4 py-2 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring focus:ring-green-300 shadow-xl"
+                  onclick="templates()"
+                >
+                  Explore other templates
+                </button>
+              </div>
+            </div>
+            <!-- minimize button  -->
+            <button
+              id="closeBtn"
+              onclick="tog()"
+              class="relative top-2 right-2 p-2 text-black rounded-full hover:bg-red-600 transition-transform transform hover:scale-110 focus:outline-none"
+            >
+              <i class="fas fa-arrow-right"></i>
+            </button>
+          </div>
+          <!-- resume container  -->
+          <div id="resumeContainer" class="w-full max-w-4xl p-4">
+            <div class="flex flex-col">
+              <div>
+                <h2
+                  id="name"
+                  class="font-bold text-2xl"
+                  contenteditable="true"
+                ></h2>
+              </div>
+              <div class="flex flex-row">
+                <div class="flex flex-row items-center justify-center">
+                  <i class="fas fa-envelope"></i>
+                  <p id="email" class="px-2" contenteditable="true">
+                    kingwahley@gmail.com
+                  </p>
+                </div>
+                <div class="flex flex-row items-center">
+                  <i class="fas fa-phone"></i>
+                  <p id="phone" class="px-2" contenteditable="true">
+                    123456799
+                  </p>
+                </div>
+              </div>
+              <div class="flex flex-row items-center">
+                <i class="fab fa-linkedin-in"></i>
+                <p
+                  id="linkedin"
+                  class="text-blue-500 px-2"
+                  contenteditable="true"
+                >
+                  linkedinprofilecode
+                </p>
+              </div>
+            </div>
+
+            <div class="my-4">
+              <h3 class="font-bold">Summery</h3>
+              <div id="professional_summary" contenteditable="true"></div>
+            </div>
+            <div id="experience" class="pb-4"></div>
+            <div class="pb-4">
+              <h3 class="font-bold">Education</h3>
+              <div class="flex">
+                <div class="px-2">
+                  <i class="fas fa-university"></i>
+                </div>
+                <div>
+                  <p class="font-bold" id="eduSchool" contenteditable="true">
+                    University Of ilorin
+                  </p>
+                  <p id="eduDegree" contenteditable="true"></p>
+                  <p id="eduYear" contenteditable="true"></p>
+                </div>
+              </div>
+            </div>
+            <div>
+              <h3 class="font-bold">Skills</h3>
+              <div class="grid grid-cols-3" id="skills"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        // default template
+        const image0 = document.getElementById("image0");
+        // templates pictures
+        const image1 = document.getElementById("image1");
+        const image2 = document.getElementById("image2");
+        const image3 = document.getElementById("image3");
+        const image4 = document.getElementById("image4");
+        const image5 = document.getElementById("image5");
+        const image6 = document.getElementById("image6");
+
+        const container = document.getElementById("resumeContainer");
+        // document to get data
+        document
+          .getElementById("resumeForm")
+          .addEventListener("submit", async function (event) {
             event.preventDefault();
             const formData = new FormData(this);
             const response = await fetch("/generate_resume", {
-                method: "POST",
-                body: formData,
+              method: "POST",
+              body: formData,
             });
             const data = await response.json();
-            document.getElementById("generated_resume").textContent =
-                data.generated_resume;
             console.log(data);
-        });
-    </script>
-</body>
+            // catch default display template id
+            const Email = document.getElementById("email");
+            const linkedin = document.getElementById("linkedin");
+            const phone = document.getElementById("phone");
+            const name = document.getElementById("name");
+            const summary = document.getElementById("professional_summary");
+            const eduSchool = document.getElementById("eduSchool");
+            const eduDegree = document.getElementById("eduDegree");
+            const eduYear = document.getElementById("eduYear");
+            // catch school data
+            let schoolData = "";
+            let degreeData = "";
+            let yearData = "";
+            // condition incase data changes structure
+            data.Education.School
+              ? (schoolData = data.Education.School)
+              : (schoolData = data.Education[0].School);
+            data.Education.Degree
+              ? (degreeData = data.Education.Degree)
+              : (degreeData = data.Education[0].Degree);
+            data.Education.Year
+              ? (yearData = data.Education.Year)
+              : (yearData = data.Education[0].Year);
+
+            // display school data
+            eduSchool.innerHTML = schoolData;
+            eduDegree.innerHTML = degreeData;
+            eduYear.innerHTML = yearData;
+
+            //experience inner html for template 1
+            let experienceHTML = "";
+            data.Experience.forEach((exp) => {
+              const experienceDiv = `
+        <div class="pb-4">
+            <h3 class="font-bold">Experience</h3>
+            <div class="flex">
+                <div class="px-2">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div>
+                    <p id="expTitle" contenteditable="true">${exp.Title}</p>
+                    <p id="expCompany" contenteditable="true">${exp.Company}</p>
+                    <p id="expDate" contenteditable="true">${exp.Date}</p>
+                    
+                    <ul contenteditable="true" class="list-disc ml-6">
+                        ${exp.Responsibilities.map(
+                          (resp) => `<li>${resp}</li>`
+                        ).join("")}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    `;
+
+              experienceHTML += experienceDiv;
+            });
+            // catching other data
+            const emailData = data.Contact.Email;
+            const linkedinData = data.Contact.LinkedIn;
+            const phoneData = data.Contact.Phone;
+            const nameData = data.Name;
+            const SummaryData = data.ProfessionalSummary;
+
+            // display template1 contents
+            const image1Content = `<div class="">
+  <div class="">
+    <div class="flex justify-between">
+      <div class="text-left">
+        <h1 id="name" class="text-4xl font-bold">${nameData}</h1>
+        <!-- <p class="text-gray-600">Your Job Title</p> -->
+      </div>
+      <div class="text-right">
+        <p id="email" class="text-gray-600">
+          ${emailData}<i class="fas fa-envelope ml-2"></i>
+        </p>
+        <p class="text-gray-600">
+          ${phoneData}<i class="fas fa-phone ml-2"></i>
+        </p>
+        <div class="mb-2 text-gray-600">
+           <a>${linkedinData}</a>
+            <i class="fab fa-linkedin text-blue-500 mr-2"></i
+            >
+            
+        </div>
+      </div>
+    </div>
+    <hr class="my-4" />
+    <section class="mb-8">
+      <h2 class="text-2xl font-semibold mb-2">Summary</h2>
+      <p class="text-gray-800">${SummaryData}</p>
+    </section>
+    <section class="mb-8">
+      <h2 class="text-2xl font-semibold mb-2">Experience</h2>
+      <div id="experience1" class="mb-4">
+        <div id="experience">${experienceHTML}</div>
+      </div>
+      <!-- Repeat for each job experience -->
+    </section>
+    <section class="mb-8">
+      <h2 class="text-2xl font-semibold mb-2">Education</h2>
+      <div class="mb-4">
+        <h3 class="text-xl  font-bold">${degreeData} - ${schoolData}</h3>
+        <p class="text-gray-600">${yearData}</p>
+      </div>
+      <!-- Repeat for each education entry -->
+    </section>
+    <div>
+      
+      </div>
+    <section class="mb-8">
+      <h2 class="text-2xl font-semibold mb-2">Skills</h2>
+      <div id="skills"  class="grid grid-cols-3 text-gray-800">
+        ${data.Skills.map(
+          (skill) => `
+            <div class="flex flex-row items-center px-4">
+                <i class="fas fa-check"></i>
+                <p class="font-bold" contenteditable="true">${skill}</p>
+            </div>
+        `
+        ).join("")}
+        <!-- Add more skills as needed -->
+      </div>
+    </section>
+  </div>
+</div>`;
+            // display template2 content
+            const image2Content = `<div class="">
+      <div class="text-center mb-4">
+        <h1 class="text-3xl font-bold">${nameData}</h1>
+        <p class="text-xl">Web Developer</p>
+      </div>
+
+      <hr class="my-4" />
+
+      <section class="mb-8">
+        <h2 class="text-xl font-semibold mb-2">Contact Information</h2>
+        <ul class="list-none">
+          <li class="mb-2">
+            <i class="fas fa-envelope text-gray-600 mr-2"></i>${emailData}
+          </li>
+          <li class="mb-2">
+            <i class="fas fa-phone text-gray-600 mr-2"></i>${phoneData}
+          </li>
+          <li class="mb-2">
+            <i class="fab fa-linkedin text-blue-500 mr-2"></i
+            ><a "
+              >${linkedinData}</a
+            >
+          </li>
+          <li class="mb-2">
+            <i class="fab fa-github text-gray-700 mr-2"></i
+            ><a href="https://github.com/yourusername" target="_blank"
+              >GitHub Profile</a
+            >
+          </li>
+        </ul>
+      </section>
+
+      <section class="mb-8">
+        <h2 class="text-xl font-semibold mb-2">Summary</h2>
+        <p class="text-justify">
+          ${SummaryData}
+        </p>
+      </section>
+
+      <section class="mb-8">
+        <h2 class="text-xl font-semibold mb-2">Experience</h2>
+         <div id="experience">${experienceHTML}</div>
+        <!-- Add more experience entries as needed -->
+      </section>
+
+      <section class="mb-8">
+        <h2 class="text-xl font-semibold mb-2">Education</h2>
+        <div class="mb-4">
+          <h3 class="text-md font-semibold">
+            ${degreeData} - ${schoolData}
+          </h3>
+          <p class="text-gray-600">${yearData}</p>
+        </div>
+        <!-- Add more education entries as needed -->
+      </section>
+      <p class="text-xl font-semibold">Skills</p>
+      <div id="skills"  class="grid grid-cols-3 text-gray-800">
+        
+        ${data.Skills.map(
+          (skill) => `
+            <div class="flex flex-row items-center px-4">
+                <i class="fas fa-check"></i>
+                <p class="font-bold" contenteditable="true">${skill}</p>
+            </div>
+        `
+        ).join("")}
+      </div>
+    </div>`;
+            // display template3 content
+            const image3Content = `<div class="w-full">
+              <div class=" bg-gray-100 text-gray-800 font-sans">
+                <header class="bg-blue-600 py-4 text-white text-center">
+                  <h1 class="text-4xl font-semibold">${nameData}</h1>
+                  
+                  <div class="flex flex-row justify-center items-center">
+                    <p class="p-4">${emailData}</p>
+                    <p class="p-4">${phoneData}</p>
+                    <p class="p-4">${linkedinData}</p>
+                  </div>
+                </header>
+
+                <div class="container mx-auto p-6">
+                  <section class="mb-8">
+                    <h2 class="text-2xl font-semibold">Summary</h2>
+                    <p class="mt-2">
+                      ${SummaryData}
+                    </p>
+                  </section>
+
+                  <section class="mb-8">
+                    <h2 class="text-2xl font-semibold">Experience</h2>
+                    <div id="experience">${experienceHTML}</div>
+                    <!-- Repeat for each job experience -->
+                  </section>
+
+                  <section class="mb-8">
+                    <h2 class="text-2xl font-semibold">Education</h2>
+                    <div class="mb-4">
+                      <h3 class="text-xl font-bold">
+                        ${degreeData} - ${schoolData}
+                      </h3>
+                      <p class="text-gray-600">${yearData}</p>
+                    </div>
+                    <div>
+                      <p class="text-xl font-semibold">Skills</p>
+                      <div id="skills" class="grid grid-cols-3 text-gray-800">
+                        ${data.Skills.map(
+                          (skill) => `
+                          <div class="flex flex-row items-center px-4">
+                              <i class="fas fa-pencil-alt"></i>
+                              <p class="font-bold" contenteditable="true">${skill}</p>
+                          </div>
+                      `
+                        ).join("")}</div>
+                      </div>
+                  </section>
+                </div>
+                </div></div>`;
+            // display template4 content
+            const image4Content = `<div class="">
+    <div
+      class="bg-white shadow-md rounded-lg overflow-hidden max-w-4xl mx-auto p-4"
+    >
+      <header class="text-center mb-6">
+        <h1 class="text-4xl font-bold">${nameData}</h1>
+      </header>
+
+      <section class="mb-8">
+        <h2 class="text-2xl font-semibold text-gray-700">Contact</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          <div>
+            <p class="text-gray-600">Email</p>
+            <p class="text-gray-900">${emailData}</p>
+          </div>
+          <div>
+            <p class="text-gray-600">Phone</p>
+            <p class="text-gray-900">${phoneData}</p>
+          </div>
+          <div>
+            <p class="text-gray-600">LinkedIn</p>
+            <a
+              href="${linkedinData}"
+              class="text-blue-600 hover:underline"
+              >${linkedinData}</a
+            >
+          </div>
+        </div>
+      </section>
+
+      <section class="mb-8">
+        <h2 class="text-2xl font-semibold text-gray-700">Summary</h2>
+        <p class="text-gray-900 mt-4">
+           ${SummaryData}
+        </p>
+      </section>
+
+      <section class="mb-8">
+        <h2 class="text-2xl font-semibold text-gray-700">Experience</h2>
+        ${experienceHTML}
+      </section>
+
+      <section class="mb-8">
+        <h2 class="text-2xl font-semibold text-gray-700">Education</h2>
+        <!-- Education items -->
+        <div class="mb-4">
+          <h3 class="text-xl font-semibold text-gray-900">
+            ${degreeData} - ${schoolData}
+          </h3>
+          <p class="text-gray-600">${yearData}</p>
+        </div>
+        
+      </section>
+      <div>
+        <p class="text-xl font-semibold">Skills</p>
+        <div id="skills" class="grid grid-cols-3 text-gray-800">
+          ${data.Skills.map(
+            (skill) => `
+                          <div class="flex flex-row items-center px-4">
+                              <i class="fas fa-pencil-alt"></i>
+                              <p class="font-bold" contenteditable="true">${skill}</p>
+                          </div>
+                      `
+          ).join("")}</div>
+        </div>
+      </div>
+  </div>`;
+            // display template5 content
+            const image5Content = `
+            <div class=" font-sans ">
+              <div class="container mx-auto p-4">
+              <div class="p-4 ">
+              <h1 class="text-2xl font-bold mb-2">${nameData}</h1>
+              <hr class="my-4 text-black" />
+
+              <div class="mb-4">
+                <h2 class="text-lg font-semibold">Contact Information</h2>
+                <ul class="list-disc list-inside ml-4">
+                  <li>Email: ${emailData}</li>
+                  <li>Phone: ${phoneData}</li>
+                  <li>
+                    LinkedIn: ${linkedinData}
+                  </li>
+                </ul>
+              </div>
+
+              <div  class="mb-4">
+                <h2 class="text-lg font-semibold">Summary</h2>
+                <p>
+                  ${SummaryData}
+                </p>
+              </div>
+
+              <div class="mt-5">
+                <h2 class="text-lg font-semibold">Skills</h2>
+                <div id="skills" class="grid grid-cols-3 text-gray-800">
+                              ${data.Skills.map(
+                                (skill) => `
+                                <div class="flex flex-row items-center px-4">
+                                    <i class="fas fa-pencil-alt"></i>
+                                    <p class="font-bold" contenteditable="true">${skill}</p>
+                                </div>
+                            `
+                              ).join("")}</div>
+                            </div>
+              </div>
+
+                <div class="mb-4">
+                  <h2 class="text-lg font-semibold">Experience</h2>
+                  <div id="experience">${experienceHTML}</div>
+                </div>
+
+                <div class="mb-4">
+                  <h2 class="text-lg font-semibold">Education</h2>
+                  <div class="mb-2">
+                    <h3 class="text-md font-semibold">
+                      ${degreeData}
+                    </h3>
+                    <p class="text-gray-500">${schoolData}- ${yearData}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>`;
+            // display template6 content
+            const image6Content = `<div class="container mx-auto p-6  shadow-lg rounded-lg">
+      <div class="text-center mb-4">
+        <h1 class="text-4xl font-bold text-indigo-600">${nameData}</h1>
+      </div>
+      <hr class="my-4" />
+      <div class="mb-4">
+        <h2 class="text-2xl font-bold text-indigo-600 mb-2">Summary</h2>
+        <p>${SummaryData}</p>
+        <div class="mb-4">
+          <h2 class="text-2xl font-bold text-indigo-600">Skills</h2>
+          <div id="skills" class="grid grid-cols-3 text-gray-800">
+                        ${data.Skills.map(
+                          (skill) => `
+                          <div class="flex flex-row items-center px-4">
+                              <i class="fas fa-pencil-alt"></i>
+                              <p class="font-bold" contenteditable="true">${skill}</p>
+                          </div>
+                      `
+                        ).join("")}</div>
+                      </div>
+        </div>
+      </div>
+      <hr class="my-4" />
+      <div class="mb-4">
+        <h2 class="text-2xl font-bold text-indigo-600">Experience</h2>
+        <!-- Add your experience details here -->
+        <div class="mb-4">
+           <div id="experience">${experienceHTML}</div>
+        </div>
+        <!-- Repeat for each job experience -->
+      </div>
+      <hr class="my-4" />
+      <div class="mb-4">
+        <h2 class="text-2xl font-bold text-indigo-600">Education</h2>
+        <!-- Add your education details here -->
+        <div class="mb-4">
+          <h3 class="text-xl font-semibold">${degreeData}</h3>
+          <p class="text-gray-700">${schoolData}</p>
+          <p class="text-gray-600">${yearData}</p>
+        </div>
+        <!-- Repeat for each educational qualification -->
+      </div>
+      <hr class="my-4" />
+      <div class="mb-4">
+        <h2 class="text-2xl font-bold text-indigo-600">Contact</h2>
+        <p class="text-gray-700">
+          <i class="fas fa-envelope mr-2"></i> ${emailData}
+        </p>
+        <p class="text-gray-700">
+          <i class="fas fa-phone mr-2"></i> ${phoneData}
+        </p>
+      </div>
+    </div>`;
+            // display default
+            const defaultTemp = `<div id="resumeContainer" class="w-full max-w-4xl p-4">
+            <div class="flex flex-col">
+              <div>
+                <h2
+                  id="name"
+                  class="font-bold text-2xl"
+                  contenteditable="true"
+                >${nameData}</h2>
+              </div>
+              <div class="flex flex-row">
+                <div class="flex flex-row items-center justify-center">
+                  <i class="fas fa-envelope"></i>
+                  <p id="email" class="px-2" contenteditable="true">
+                    ${emailData}
+                  </p>
+                </div>
+                <div class="flex flex-row items-center">
+                  <i class="fas fa-phone"></i>
+                  <p id="phone" class="px-2" contenteditable="true">
+                    ${phoneData}
+                  </p>
+                </div>
+              </div>
+              <div class="flex flex-row items-center">
+                <i class="fab fa-linkedin-in"></i>
+                <p
+                  id="linkedin"
+                  class="text-blue-500 px-2"
+                  contenteditable="true"
+                >
+                  ${linkedinData}
+                </p>
+              </div>
+            </div>
+
+            <div class="my-4">
+              <h3 class="font-bold">Summary</h3>
+              <div id="professional_summary" contenteditable="true">${SummaryData}</div>
+            </div>
+            <div id="experience" class="pb-4">${experienceHTML}</div>
+            <div class="pb-4">
+              <h3 class="font-bold">Education</h3>
+              <div class="flex">
+                <div class="px-2">
+                  <i class="fas fa-university"></i>
+                </div>
+                <div class="mb-4">
+                  <h3 class="text-xl font-bold">
+                    ${degreeData} - ${schoolData}
+                  </h3>
+                  <p class="text-gray-600">${yearData}</p>
+                </div>
+              </div>
+            </div>
+            <div>
+              <h3 class="font-bold">Skills</h3>
+              <div id="skills" class="grid grid-cols-3 text-gray-800">
+                        ${data.Skills.map(
+                          (skill) => `
+                          <div class="flex flex-row items-center px-4">
+                              <i class="fas fa-pencil-alt"></i>
+                              <p class="font-bold" contenteditable="true">${skill}</p>
+                          </div>
+                      `
+                        ).join("")}</div>
+            </div>
+          </div>`;
+
+            // display template2 contents on click
+            image2.addEventListener("click", function () {
+              container.innerHTML = image2Content;
+              closeTemps();
+            });
+            // display template3 contents on click
+            image3.addEventListener("click", function () {
+              container.innerHTML = image3Content;
+              closeTemps();
+            });
+            // display template1 contents on click
+            image1.addEventListener("click", function () {
+              container.innerHTML = image1Content;
+              closeTemps();
+            });
+            // display template4 contents on click
+            image4.addEventListener("click", function () {
+              container.innerHTML = image4Content;
+              closeTemps();
+            });
+            // display template5 contents on click
+            image5.addEventListener("click", function () {
+              container.innerHTML = image5Content;
+              closeTemps();
+            });
+            // display template6 contents on click
+            image6.addEventListener("click", function () {
+              container.innerHTML = image6Content;
+              closeTemps();
+            });
+
+            // populate resume
+            function populateResume() {
+              emailData ? (Email.textContent = emailData || "") : "";
+
+              linkedinData ? (linkedin.textContent = linkedinData || "") : "";
+              phoneData ? (phone.textContent = phoneData || "") : "";
+              nameData ? (name.textContent = nameData || "") : "";
+
+              SummaryData ? (summary.textContent = SummaryData || "") : "";
+
+              // hide loader function
+              function hideLoader() {
+                document.getElementById("loader").classList.add("hidden");
+                document.getElementById("inputs").classList.add("hidden");
+                document.getElementById("results").classList.remove("hidden");
+              }
+
+              emailData ? hideLoader() : console.log("no email data");
+
+              // display default experience section
+              const experienceList = document.getElementById("experience");
+              experienceList.innerHTML = "";
+              data.Experience.forEach((exp) => {
+                const listItem = document.createElement("div");
+                listItem.innerHTML = `
+                          <div class="pb-4">
+                            <h3 class="font-bold">Experience</h3>
+                            <div class="flex">
+                              <div class="px-2">
+                                <i class="fas fa-building"></i>
+                              </div>
+                              <div>
+                                <p id="expTitle" contenteditable="true">${
+                                  exp.Title
+                                }</p>
+                                <p id="expCompany" contenteditable="true">${
+                                  exp.Company
+                                }</p>
+                                <p id="expDate" contenteditable="true">${
+                                  exp.Date
+                                }</p>
+                                
+                                <ul contenteditable="true" class="list-disc ml-6">
+                              ${exp.Responsibilities.map(
+                                (resp) => `<li>${resp}</li>`
+                              ).join("")}
+                          </ul>
+                              </div>
+                            </div>
+                          </div>`;
+
+                experienceList.appendChild(listItem);
+              });
+              // display project section
+              // const projectsList = document.getElementById("projects");
+              // projectsList.innerHTML = "";
+              // data.Projects.forEach((project) => {
+              //   const listItem = document.createElement("li");
+              //   listItem.textContent = project;
+              //   projectsList.appendChild(listItem);
+              // });
+              // default skill set loop
+
+              // default skill section
+              const skillsList = document.getElementById("skills");
+              skillsList.innerHTML = "";
+              data.Skills.forEach((skill) => {
+                const listItem = document.createElement("div");
+                listItem.innerHTML = `<div class="flex flex-row items-center px-4 "><i class="fas fa-check"></i><p class="font-bold">${skill}</p></div>`;
+                listItem.contentEditable = true;
+                skillsList.appendChild(listItem);
+              });
+            }
+
+            populateResume();
+            image0.addEventListener("click", function () {
+              const cont = document.getElementById("resumeContainer");
+              cont.innerHTML = defaultTemp;
+              document.getElementById("templates").classList.add("hidden");
+              document.getElementById("results").classList.remove("hidden");
+            });
+          });
+      </script>
+    </div>
+    <div>
+      <!-- <h2>Last 10 Resumes:</h2>
+      <div class="resume-list">
+        {% for resume_id, resume_content in user_resumes.items() %}
+        <div class="resume-item">
+          <h3>Resume {{ resume_id }}</h3>
+          <p>{{ resume_content }}</p>
+        </div>
+        {% endfor %}
+      </div>
+      <a href="{{ url_for('show_more_resumes') }}">Show More</a>
+      <a href="{{ url_for('logout') }}">Logout</a>
+      <h1>Welcome, {{ user_info.data['given_name'] }}</h1>
+      <h1>{{ user_info.data }}</h1>
+      <h1>{{ user_info.data['email'] }}</h1>
+      <img src="{{ user_info.data['picture'] }}" alt="" srcset="" /> -->
+
+      <!-- <ul contenteditable="true" class="list-disc ml-6">
+        ${data.Projects.map((proj) => `
+        <li>${proj}</li>
+        `).join( "" )}
+      </ul> -->
+    </div>
+  </body>
 </html>

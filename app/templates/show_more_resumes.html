@@ -1,20 +1,20 @@
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
     <title>Show More Resumes</title>
-</head>
-<body>
+  </head>
+  <body>
     <h1>Resumes</h1>
     <ul>
-        {% for resume_id, resume_content in resumes.items() %}
-            <li>{{ resume_content }}</li>
-        {% endfor %}
+      {% for resume_id, resume_content in resumes.items() %}
+      <li>{{ resume_content }}</li>
+      {% endfor %}
     </ul>
 
     {% if has_more %}
-        <a href="{{ url_for('show_more_resumes', page=page+1) }}">Show More</a>
+    <a href="{{ url_for('show_more_resumes', page=page+1) }}">Show More</a>
     {% else %}
-        <p>No more resumes to display.</p>
+    <p>No more resumes to display.</p>
     {% endif %}
-</body>
+  </body>
 </html>
