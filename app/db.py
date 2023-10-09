@@ -11,8 +11,6 @@ cred = credentials.Certificate(config.FIREBASE_CRED_PATH)
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
-# Function to save the generated resume to Firestore and session
-
 
 def save_resume_to_firestore_and_session(user_id, generated_resume, resume_id):
     # Store the generated resume in the user's session
@@ -110,14 +108,13 @@ def get_next_resume_id(user_id):
     resumes_ref = db.collection("users").document(user_id).collection("resumes")
 
     # Query the existing resumes to find the maximum resume ID
-    query = resumes_ref.order_by(
-        "resume_id", direction=firestore.Query.DESCENDING
-    ).limit(1)
-    last_resume = list(query.stream())  # Convert the generator to a list
+    query = resumes_ref.stream()
+    last_resume = list(query)  # Convert the generator to a list
 
     if last_resume:
         # Get the last used resume ID
-        last_resume_id = last_resume[0].get("resume_id")
+        last_resume_id = len(last_resume)
+        print(last_resume_id)
         # Increment the last used ID by 1 to create the next resume ID
         return last_resume_id + 1
     else:
@@ -133,14 +130,12 @@ def get_last_resume_id(user_id):
     resumes_ref = db.collection("users").document(user_id).collection("resumes")
 
     # Query the existing resumes to find the maximum resume ID
-    query = resumes_ref.order_by(
-        "resume_id", direction=firestore.Query.DESCENDING
-    ).limit(1)
-    last_resume = query.stream()
+    query = resumes_ref.stream()
+    last_resume = list(query)
 
     if last_resume:
         # Get the last used resume ID
-        last_resume_id = last_resume[0].get("resume_id")
+        last_resume_id = len(last_resume)
         return last_resume_id
     else:
         # If no resumes are found, return 0 as the default

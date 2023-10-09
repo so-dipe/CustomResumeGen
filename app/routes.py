@@ -50,10 +50,10 @@ def generate_resume():
     generated_resume = generate_custom_resume(job_description, resume_text)
 
     # Check if the user is logged in using the session variable
-    if "user_info" not in session or "id" not in session["user_info"].data:
+    if "user_info" not in session or "id" not in session["user_info"]:
         return jsonify({"error": "User is not logged in."})
 
-    user_id = session["user_info"].data["id"]
+    user_id = session["user_info"]["id"]
 
     resume_id = get_next_resume_id(user_id)
 
@@ -78,6 +78,7 @@ def dashboard():
 
         # Retrieve the last 10 user resumes from the session
         user_resumes = session.get("user_resumes", {})
+        print(len(user_resumes))
 
         return render_template(
             "dashboard.html", user_info=user_info, user_resumes=user_resumes
@@ -89,7 +90,7 @@ def dashboard():
 @app.route("/show_more_resumes")
 def show_more_resumes():
     # Retrieve the user's ID from the session
-    user_id = session.get("user_info").data["id"]
+    user_id = session.get("user_info")["id"]
 
     # Get the current page number from the query parameters (default to 1)
     page = int(request.args.get("page", 1))
