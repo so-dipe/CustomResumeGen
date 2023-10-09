@@ -4,6 +4,10 @@
     <title>Show More Resumes</title>
   </head>
   <body>
+    <script>
+      var userResumes = {{ resumes|tojson }};
+      console.log(userResumes);
+    </script>
     <h1>Resumes</h1>
     <ul>
       {% for resume_id, resume_content in resumes.items() %}

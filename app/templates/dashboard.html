@@ -23,6 +23,8 @@
     }
   </style>
   <script>
+    var userResumes = {{ user_resumes|tojson }};
+    console.log(userResumes);
     // generate pdf function
     function generatePDF() {
       const pdefName = document.getElementById("userName").textContent;
@@ -54,16 +56,16 @@
             >
               <!-- user picture -->
               <img
-                src="{{ user_info.data['picture'] }}"
+                src="{{ user_info['picture'] }}"
                 alt=""
                 class="rounded-full"
               />
             </div>
             <div class="px-3">
               <!-- user name  -->
-              <h1 id="userName">{{ user_info.data['name'] }}</h1>
+              <h1 id="userName">{{ user_info['name'] }}</h1>
               <!-- user email  -->
-              <h1>{{ user_info.data['email'] }}</h1>
+              <h1>{{ user_info['email'] }}</h1>
             </div>
           </div>
           <!-- logout button  -->
@@ -1013,10 +1015,10 @@
       </div>
       <a href="{{ url_for('show_more_resumes') }}">Show More</a>
       <a href="{{ url_for('logout') }}">Logout</a>
-      <h1>Welcome, {{ user_info.data['given_name'] }}</h1>
-      <h1>{{ user_info.data }}</h1>
-      <h1>{{ user_info.data['email'] }}</h1>
-      <img src="{{ user_info.data['picture'] }}" alt="" srcset="" /> -->
+      <h1>Welcome, {{ user_info['given_name'] }}</h1>
+      <h1>{{ user_info }}</h1>
+      <h1>{{ user_info['email'] }}</h1>
+      <img src="{{ user_info['picture'] }}" alt="" srcset="" /> -->
 
       <!-- <ul contenteditable="true" class="list-disc ml-6">
         ${data.Projects.map((proj) => `
