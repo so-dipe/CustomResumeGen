@@ -27,7 +27,7 @@ def index():
     if session.get("logged_in"):
         if "user_resumes" not in session:
             session["user_resumes"] = {}
-        print(type(session["user_resumes"]))
+        # print(type(session["user_resumes"]))
         # If the user is logged in, redirect them to the dashboard
         return redirect(url_for("dashboard"))
 
@@ -79,11 +79,12 @@ def dashboard():
         update_or_create_user_data(user_info)
 
         # Retrieve the last 10 user resumes from the session
-        user_resumes = session.get("user_resumes")
-        print(len(user_resumes))
+        # user_resumes = session.get("user_resumes")
+        # print(len(user_resumes))
 
         return render_template(
-            "dashboard.html", user_info=user_info, user_resumes=user_resumes
+            "dashboard.html",
+            user_info=user_info,
         )
     else:
         return "Failed to fetch user info from OAuth response"

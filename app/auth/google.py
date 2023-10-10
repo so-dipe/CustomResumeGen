@@ -69,7 +69,7 @@ def authorized_google():
         user_id = user_info.data["id"]
 
         # Store the last 10 resumes in the session
-        session["user_resumes"] = get_resumes_from_firestore(user_id, limit=3)
+        # session["user_resumes"] = get_resumes_from_firestore(user_id, limit=3)
 
         # Redirect the user to the dashboard
         return redirect(url_for("dashboard"))
