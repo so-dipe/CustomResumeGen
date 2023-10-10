@@ -17,6 +17,7 @@ db = firestore.client()
 def save_resume_to_firestore_and_session(user_id, generated_resume):
     # Get the current timestamp using Python's datetime
     timestamp = datetime.now()
+    print(timestamp)
 
     # Reference the "resumes" collection for the user and add a new document with auto-generated ID
     resume_ref = (
@@ -32,7 +33,7 @@ def save_resume_to_firestore_and_session(user_id, generated_resume):
     print(resume_id)
 
     # Save the generated resume to the session
-    save_resume_to_session(generated_resume, resume_id, timestamp)
+    # save_resume_to_session(generated_resume, resume_id, timestamp)
 
     # Limit the number of documents in Firestore to 100
     limit_documents_in_firestore(user_id, limit=100)
@@ -42,10 +43,13 @@ def save_resume_to_firestore_and_session(user_id, generated_resume):
 
 def save_resume_to_session(generated_resume, resume_id, timestamp=None):
     if timestamp is None:
-        timestamp = datetime.now()
+        timestamp = datetime.now().replace(tzinfo=None)
 
     # Create a dictionary to store the resume data and its timestamp
-    resume_data = {"content": generated_resume, "timestamp": timestamp}
+    resume_data = {
+        "content": generated_resume,
+        "timestamp": timestamp.replace(tzinfo=None),
+    }
 
     # Add the resume data to the session
     session["user_resumes"][resume_id] = resume_data

@@ -23,8 +23,6 @@
     }
   </style>
   <script>
-    var userResumes = {{ user_resumes|tojson }};
-    console.log(userResumes);
     // generate pdf function
     function generatePDF() {
       const pdefName = document.getElementById("userName").textContent;
@@ -1005,14 +1003,6 @@
     </div>
     <div>
       <!-- <h2>Last 10 Resumes:</h2>
-      <div class="resume-list">
-        {% for resume_id, resume_content in user_resumes.items() %}
-        <div class="resume-item">
-          <h3>Resume {{ resume_id }}</h3>
-          <p>{{ resume_content }}</p>
-        </div>
-        {% endfor %}
-      </div>
       <a href="{{ url_for('show_more_resumes') }}">Show More</a>
       <a href="{{ url_for('logout') }}">Logout</a>
       <h1>Welcome, {{ user_info['given_name'] }}</h1>
