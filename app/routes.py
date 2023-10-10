@@ -8,8 +8,9 @@ from config.config import Config
 from .db import (
     save_resume_to_firestore_and_session,
     update_or_create_user_data,
-    get_next_resume_id,
-    get_user_resumes_from_firestore,
+    get_resumes_from_firestore,
+    # get_next_resume_id,
+    # get_user_resumes_from_firestore,
     # get_last_10_user_resumes,
 )
 
@@ -24,6 +25,9 @@ encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
 def index():
     # Check if the user is logged in using the session variable
     if session.get("logged_in"):
+        if "user_resumes" not in session:
+            session["user_resumes"] = {}
+        print(type(session["user_resumes"]))
         # If the user is logged in, redirect them to the dashboard
         return redirect(url_for("dashboard"))
 
@@ -51,16 +55,14 @@ def generate_resume():
 
     # Check if the user is logged in using the session variable
     if "user_info" not in session or "id" not in session["user_info"]:
-        return jsonify({"error": "User is not logged in."})
+        return jsonify(generated_resume)
+    else:
+        print("running")
+        user_id = session["user_info"]["id"]
 
-    user_id = session["user_info"]["id"]
-
-    resume_id = get_next_resume_id(user_id)
-
-    # Save the generated resume to Firestore and session
-    save_resume_to_firestore_and_session(user_id, generated_resume, resume_id)
-
-    return jsonify(generated_resume)
+        # Save the generated resume to Firestore and session
+        save_resume_to_firestore_and_session(user_id, generated_resume)
+        return jsonify(generated_resume)
 
 
 @app.route("/dashboard")
@@ -77,7 +79,7 @@ def dashboard():
         update_or_create_user_data(user_info)
 
         # Retrieve the last 10 user resumes from the session
-        user_resumes = session.get("user_resumes", {})
+        user_resumes = session.get("user_resumes")
         print(len(user_resumes))
 
         return render_template(
@@ -99,7 +101,7 @@ def show_more_resumes():
     resumes_per_page = 10
 
     # Retrieve resumes from Firestore with pagination
-    user_resumes = get_user_resumes_from_firestore(user_id, page, resumes_per_page)
+    user_resumes = get_resumes_from_firestore(user_id)
 
     # Determine if there are more pages
     has_more = len(user_resumes) > (page * resumes_per_page)
