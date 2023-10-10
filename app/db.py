@@ -11,70 +11,110 @@ cred = credentials.Certificate(config.FIREBASE_CRED_PATH)
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
+# Function to save the generated resume to Firestore and session
 
-def save_resume_to_firestore_and_session(user_id, generated_resume, resume_id):
-    # Store the generated resume in the user's session
-    store_in_session(user_id, generated_resume)
 
+def save_resume_to_firestore_and_session(user_id, generated_resume):
     # Get the current timestamp using Python's datetime
     timestamp = datetime.now()
 
-    # Save the generated resume to Firestore with the specified resume_id
+    # Reference the "resumes" collection for the user and add a new document with auto-generated ID
     resume_ref = (
         db.collection("users")
         .document(user_id)
         .collection("resumes")
-        .document(str(resume_id))
+        .add({"content": generated_resume, "timestamp": timestamp})
     )
-    resume_ref.set({"content": generated_resume, "timestamp": timestamp})
+
+    # Get the auto-generated ID for the newly created document
+    _, document_reference = resume_ref  # Unpack the tuple
+    resume_id = document_reference.id
+    print(resume_id)
+
+    # Save the generated resume to the session
+    save_resume_to_session(generated_resume, resume_id, timestamp)
+
+    # Limit the number of documents in Firestore to 100
+    limit_documents_in_firestore(user_id, limit=100)
+
+    return None
+
+
+def save_resume_to_session(generated_resume, resume_id, timestamp=None):
+    if timestamp is None:
+        timestamp = datetime.now()
+
+    # Create a dictionary to store the resume data and its timestamp
+    resume_data = {"content": generated_resume, "timestamp": timestamp}
+
+    # Add the resume data to the session
+    session["user_resumes"][resume_id] = resume_data
+
+    # If the number of resumes exceeds your desired limit (e.g., 10), remove the oldest ones
+    if len(session["user_resumes"]) > 3:
+        remove_oldest_resumes(3)
+
+
+def remove_oldest_resumes(limit):
+    # Sort the resumes by timestamp in ascending order
+    sorted_resumes = sorted(
+        session["user_resumes"].items(), key=lambda x: x[1]["timestamp"]
+    )
+
+    # Get the IDs of the oldest resumes to be removed
+    oldest_resume_ids = [
+        resume[0] for resume in sorted_resumes[: len(session["user_resumes"]) - limit]
+    ]
+
+    # Remove the oldest resumes from the session
+    for resume_id in oldest_resume_ids:
+        del session["user_resumes"][resume_id]
 
 
 # Function to store the generated resume in the user's session
 
 
-def store_in_session(user_id, generated_resume):
-    # Retrieve the user's stored resumes from Firestore
-    user_resumes = get_user_resumes_from_firestore(user_id)
-
-    # Ensure that only the latest 100 resumes are stored in Firestore
-    if len(user_resumes) >= 100:
-        # Remove the oldest resume(s) if the limit is exceeded
-        oldest_resume_ids = sorted(user_resumes.keys())[: len(user_resumes) - 99]
-        for resume_id in oldest_resume_ids:
-            user_resumes.pop(resume_id)
-
-    # Append the generated resume to the list in Firestore
-    next_resume_id = str(len(user_resumes) + 1)
-    user_resumes[next_resume_id] = generated_resume
-
-    # Store the updated list of resumes in Firestore
-    set_user_resumes_in_firestore(user_id, user_resumes)
-
-    # Store the latest 10 resumes in the user's session
-    latest_10_resumes = dict(list(user_resumes.items())[-10:])
-    session["user_resumes"] = latest_10_resumes
-
-
-# Function to retrieve user resumes from Firestore
-
-
-def get_user_resumes_from_firestore(user_id):
+def get_resumes_from_firestore(user_id, limit=None):
     user_resumes = {}
-    resume_ref = db.collection("users").document(user_id).collection("resumes").stream()
-    for doc in resume_ref:
+
+    # Query the "resumes" collection, order by timestamp in descending order
+    resume_query = (
+        db.collection("users")
+        .document(user_id)
+        .collection("resumes")
+        .order_by("timestamp", direction=firestore.Query.DESCENDING)
+    )
+
+    # If a limit is specified, apply the limit to the query
+    if limit is not None:
+        resume_query = resume_query.limit(limit)
+
+    # Retrieve the documents that match the query
+    for doc in resume_query.stream():
         resume_id = doc.id
         resume_data = doc.to_dict()
-        user_resumes[resume_id] = resume_data["content"]
+        user_resumes[resume_id] = resume_data
+
     return user_resumes
 
 
-# Function to set user resumes in Firestore
+def limit_documents_in_firestore(user_id, limit):
+    # Query all resume documents for the user, ordered by timestamp
+    resume_query = (
+        db.collection("users")
+        .document(user_id)
+        .collection("resumes")
+        .order_by("timestamp")
+    )
 
+    # Get the total number of documents
+    total_documents = list(resume_query.stream())
 
-def set_user_resumes_in_firestore(user_id, user_resumes):
-    user_resume_ref = db.collection("users").document(user_id).collection("resumes")
-    for resume_id, resume_content in user_resumes.items():
-        user_resume_ref.document(resume_id).set({"content": resume_content})
+    # If the total number of documents exceeds the limit, delete the oldest documents
+    if len(total_documents) > limit:
+        documents_to_delete = resume_query.limit(len(total_documents) - limit).stream()
+        for doc in documents_to_delete:
+            doc.reference.delete()
 
 
 def update_or_create_user_data(user_info):
@@ -83,7 +123,7 @@ def update_or_create_user_data(user_info):
     email = user_info["email"]
     # Add other user data fields as needed
 
-    # Get the user's ID from the user_info dictionary
+    # Get the user's ID from the user_info data
     user_id = user_info["id"]
 
     # Reference to the user's document in Firestore
@@ -98,91 +138,3 @@ def update_or_create_user_data(user_info):
     else:
         # Create a new document
         user_ref.set({"given_name": given_name, "email": email})
-
-
-# Implement a function to get the next resume ID for a user
-
-
-def get_next_resume_id(user_id):
-    # Reference to the user's resumes collection
-    resumes_ref = db.collection("users").document(user_id).collection("resumes")
-
-    # Query the existing resumes to find the maximum resume ID
-    query = resumes_ref.stream()
-    last_resume = list(query)  # Convert the generator to a list
-
-    if last_resume:
-        # Get the last used resume ID
-        last_resume_id = len(last_resume)
-        print(last_resume_id)
-        # Increment the last used ID by 1 to create the next resume ID
-        return last_resume_id + 1
-    else:
-        # If no resumes are found, start with ID 1
-        return 1
-
-
-# Implement a function to get the last used resume ID for a user
-
-
-def get_last_resume_id(user_id):
-    # Reference to the user's resumes collection
-    resumes_ref = db.collection("users").document(user_id).collection("resumes")
-
-    # Query the existing resumes to find the maximum resume ID
-    query = resumes_ref.stream()
-    last_resume = list(query)
-
-    if last_resume:
-        # Get the last used resume ID
-        last_resume_id = len(last_resume)
-        return last_resume_id
-    else:
-        # If no resumes are found, return 0 as the default
-        return 0
-
-
-# Modify get_user_resumes_from_firestore to support pagination
-
-
-def get_user_resumes_from_firestore(user_id, page=1, per_page=10):
-    user_resumes = {}
-    resume_ref = db.collection("users").document(user_id).collection("resumes")
-
-    # Calculate the starting index based on the current page and per_page
-    start_index = (page - 1) * per_page
-
-    # Retrieve resumes with pagination
-    resume_query = (
-        resume_ref.order_by("timestamp", direction=firestore.Query.DESCENDING)
-        .limit(per_page)
-        .offset(start_index)
-        .stream()
-    )
-
-    for doc in resume_query:
-        resume_id = doc.id
-        resume_data = doc.to_dict()
-        user_resumes[resume_id] = resume_data["content"]
-
-    return user_resumes
-
-
-# Function to get the last 10 user resumes from Firestore.
-
-
-def get_last_10_user_resumes(user_id):
-    user_resumes = {}
-    resume_ref = (
-        db.collection("users")
-        .document(user_id)
-        .collection("resumes")
-        .order_by("timestamp", direction=firestore.Query.DESCENDING)
-        .limit(10)
-        .stream()
-    )
-    for doc in resume_ref:
-        resume_id = doc.id
-        resume_data = doc.to_dict()
-        user_resumes[resume_id] = resume_data["content"]
-    return user_resumes

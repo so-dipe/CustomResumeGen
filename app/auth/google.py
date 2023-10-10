@@ -9,7 +9,7 @@ from flask import (
 )
 from flask_oauthlib.client import OAuth
 from config.config import Config
-from app.db import get_last_10_user_resumes
+from app.db import get_resumes_from_firestore
 
 config = Config()
 
@@ -30,17 +30,6 @@ google = oauth.remote_app(
     authorize_url="https://accounts.google.com/o/oauth2/auth",
 )
 
-
-# @google_auth_bp.route("/google")
-# def login_google():
-#     print(url_for(".authorized_google", _external=True))
-#     # return google.authorize(callback=url_for(".authorized_google", _external=True))
-#     return google.authorize(
-#         callback="https://resumegen-swl0.onrender.com/auth/google/authorized"
-#     )
-#     # return google.authorize(
-#     #     callback="https://shiny-space-spoon-wq9jrxx96jpc5jx9-5000.app.github.dev/auth/google/authorized"
-#     # )
 
 @google_auth_bp.route("/google")
 def login_google():
@@ -79,11 +68,8 @@ def authorized_google():
         # Retrieve the user's ID
         user_id = user_info.data["id"]
 
-        # Retrieve the last 10 user resumes from Firestore
-        last_10_user_resumes = get_last_10_user_resumes(user_id)
-
         # Store the last 10 resumes in the session
-        session["user_resumes"] = last_10_user_resumes
+        session["user_resumes"] = get_resumes_from_firestore(user_id, limit=3)
 
         # Redirect the user to the dashboard
         return redirect(url_for("dashboard"))
