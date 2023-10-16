@@ -90,6 +90,19 @@ def dashboard():
         return "Failed to fetch user info from OAuth response"
 
 
+@app.route("/save_resume", methods=["POST"])
+def save_resume():
+    data = request.json  # Assuming the data is sent as JSON
+    user_id = data.get("user_id")
+    generated_resume = data.get("generated_resume")
+
+    if not user_id or not generated_resume:
+        return jsonify({"error": "Invalid data received"})
+
+    save_resume_to_firestore_and_session(user_id, generated_resume)
+    return jsonify({"message": "Resume saved successfully."})
+
+
 @app.route("/show_more_resumes")
 def show_more_resumes():
     # Retrieve the user's ID from the session

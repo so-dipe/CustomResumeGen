@@ -1,6 +1,7 @@
 import os
 import json
 from config.config import Config
+import datetime
 
 import openai
 import tiktoken
@@ -10,8 +11,12 @@ config = Config()
 encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
 openai.api_key = config.OPENAI_API_KEY
 
-with open("app/resume/data/system-prompt.txt", "r") as f:
+with open("app/resume/data/system-prompt1.txt", "r") as f:
     system_prompt = f.read()
+    current_year = datetime.datetime.now().year
+    x = current_year - 2016
+    system_prompt = system_prompt.replace("{{year}}", str(current_year))
+    system_prompt = system_prompt.replace("{{x}}", str(x))
     tokens = encoding.encode(system_prompt)
     len_sys_prmt = len(tokens)
 
