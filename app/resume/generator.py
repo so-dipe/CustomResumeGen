@@ -21,27 +21,33 @@ with open("app/resume/data/system-prompt1.txt", "r") as f:
     len_sys_prmt = len(tokens)
 
 
-def generate_custom_resume(job_description, resume=None, system_prompt=system_prompt):
-    system_prompt = f"{system_prompt}"
-    len_jd = len(encoding.encode(job_description))
-    len_resume = len(encoding.encode(resume))
+# def generate_custom_resume(job_description, resume=None, system_prompt=system_prompt):
+#     system_prompt = f"{system_prompt}"
+#     len_jd = len(encoding.encode(job_description))
+#     len_resume = len(encoding.encode(resume))
 
-    user_prompt = (
-        f"""Please generate a tailored resume for a candidate applying for the role given below.\n"""
-        f"""Job Description: {job_description}\n"""
-        f"""Use the following resume as a guide:\n {resume}"""
-    )
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt},
-        ],
-    )
-    print(response)
-    print(len_sys_prmt + len_jd + len_resume)
-    generated_resume = process_generated_resume(response=response)
-    return generated_resume
+#     user_prompt = (
+#         f"""Please generate a tailored resume for a candidate applying for the role given below.\n"""
+#         f"""Job Description: {job_description}\n"""
+#         f"""Use the following resume as a guide:\n {resume}"""
+#     )
+#     response = openai.ChatCompletion.create(
+#         model="gpt-3.5-turbo",
+#         messages=[
+#             {"role": "system", "content": system_prompt},
+#             {"role": "user", "content": user_prompt},
+#         ],
+#     )
+#     print(response)
+#     print(len_sys_prmt + len_jd + len_resume)
+#     generated_resume = process_generated_resume(response=response)
+#     return generated_resume
+
+
+def generate_custom_resume(job_description=None, resume=None):
+    with open("app/resume/data/gen_resume.txt", "r") as f:
+        resume = f.read()
+    return json.loads(resume)
 
 
 def process_generated_resume(response):
